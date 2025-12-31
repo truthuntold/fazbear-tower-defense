@@ -81,6 +81,7 @@ const App: React.FC = () => {
   // Removed isAiLoading state <!-- Gemini Integration Removal -->
   const [cheatCode, setCheatCode] = useState("");
   const [showTerminal, setShowTerminal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const gameLoopRef = useRef<number>(null);
@@ -183,8 +184,7 @@ const App: React.FC = () => {
       setShowTerminal(false);
       setFlavorText("OVERRIDE ACCEPTED: Infinite Faz-Coins granted. Management is displeased.");
     } else if (cmd === 'reset') {
-      localStorage.removeItem(SAVE_KEY);
-      window.location.reload();
+      handlePlayAgain();
     } else if (cmd === 'save') {
       const { enemies, projectiles, isWaveActive, isPrepPhase, prepTimeRemaining, ...persistentData } = gameState;
       localStorage.setItem(SAVE_KEY, JSON.stringify(persistentData));
@@ -493,7 +493,7 @@ const App: React.FC = () => {
   }, [gameLoop]);
 
   const uniqueInventoryIds: string[] = Array.from(new Set(gameState.inventory)).sort((a: string, b: string) => {
-    const charA = CHARACTERS[a]; const charB = CHARACTERS[b];
+    const charA = CHARACTERS[a as keyof typeof CHARACTERS]; const charB = CHARACTERS[b as keyof typeof CHARACTERS];
     return RARITY_ORDER.indexOf(charB.rarity) - RARITY_ORDER.indexOf(charA.rarity);
   });
 
@@ -518,18 +518,39 @@ const App: React.FC = () => {
 
   if (!gameState.isDifficultySelected) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-black crt">
-        <h2 className="text-4xl font-creepy text-red-600 mb-8 tracking-[0.3em] uppercase">Select Monitoring Level</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-w-6xl w-full px-12">
-          {Object.values(Difficulty).map(diff => (
-            <button key={diff} onClick={() => selectDifficulty(diff)} className="group p-8 bg-zinc-900 border-2 border-zinc-800 hover:border-red-600 transition-all rounded-lg flex flex-col items-center gap-4 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)]">
-              <span className="text-xl font-bold font-mono-spaced text-zinc-100">{diff}</span>
-              <div className="text-[10px] text-zinc-500 font-mono-spaced uppercase space-y-1 text-center">
-                <p>Hostility: {DIFFICULTY_CONFIG[diff].hpMult}x</p>
-                <p>Faz-Reward: {DIFFICULTY_CONFIG[diff].coinMult}x</p>
+      <div className="h-screen w-screen flex flex-col bg-black crt overflow-hidden relative">
+        <div className="absolute top-4 right-4 z-50">
+          <button onClick={() => setShowSettings(!showSettings)} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showSettings ? 'bg-zinc-700 border-zinc-400 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>SETTINGS</button>
+        </div>
+
+        {showSettings && (
+          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md" onClick={() => setShowSettings(false)}>
+            <div className="w-full max-w-2xl bg-zinc-900 border-2 border-zinc-700 p-8 rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-3xl font-creepy text-zinc-100 text-center mb-8 tracking-widest">SYSTEM SETTINGS</h2>
+              <div className="bg-black/40 p-6 rounded border border-zinc-800 flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-bold">Factory Reset</h3>
+                  <p className="text-xs text-zinc-500 uppercase">Wipe all progress and start over</p>
+                </div>
+                <button onClick={() => { if (confirm("Are you sure? This will wipe ALL progress!")) { localStorage.removeItem(SAVE_KEY); window.location.reload(); } }} className="px-6 py-3 bg-red-900 hover:bg-red-600 text-white font-bold rounded uppercase transition-all shadow-lg">Reset Data</button>
               </div>
-            </button>
-          ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <h2 className="text-4xl font-creepy text-red-600 mb-8 tracking-[0.3em] uppercase">Select Monitoring Level</h2>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-w-6xl w-full px-12">
+            {Object.values(Difficulty).map(diff => (
+              <button key={diff} onClick={() => selectDifficulty(diff)} className="group p-8 bg-zinc-900 border-2 border-zinc-800 hover:border-red-600 transition-all rounded-lg flex flex-col items-center gap-4 hover:shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+                <span className="text-xl font-bold font-mono-spaced text-zinc-100">{diff}</span>
+                <div className="text-[10px] text-zinc-500 font-mono-spaced uppercase space-y-1 text-center">
+                  <p>Hostility: {DIFFICULTY_CONFIG[diff].hpMult}x</p>
+                  <p>Faz-Reward: {DIFFICULTY_CONFIG[diff].coinMult}x</p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -577,8 +598,9 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex gap-4">
-            <button onClick={() => { setShowShop(!showShop); setShowGacha(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showShop ? 'bg-blue-900 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>FACILITY SHOP</button>
-            <button onClick={() => { setShowGacha(!showGacha); setShowShop(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showGacha ? 'bg-red-900 border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>PRIZE CORNER</button>
+            <button onClick={() => { setShowSettings(!showSettings); setShowShop(false); setShowGacha(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showSettings ? 'bg-zinc-700 border-zinc-400 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>SETTINGS</button>
+            <button onClick={() => { setShowShop(!showShop); setShowGacha(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showShop ? 'bg-blue-900 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>FACILITY SHOP</button>
+            <button onClick={() => { setShowGacha(!showGacha); setShowShop(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showGacha ? 'bg-red-900 border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>PRIZE CORNER</button>
           </div>
         </div>
 
@@ -635,7 +657,7 @@ const App: React.FC = () => {
                   </div>
                 );
               })}
-              {Object.values(gameState.potions).every(v => v === 0) && <p className="text-[10px] text-zinc-700 italic text-center py-2 uppercase">No Serums Owned</p>}
+              {Object.values(gameState.potions).every(v => (v as number) === 0) && <p className="text-[10px] text-zinc-700 italic text-center py-2 uppercase">No Serums Owned</p>}
             </div>
           </section>
 
@@ -654,7 +676,27 @@ const App: React.FC = () => {
         </aside>
 
         <section className="flex-1 relative flex items-center justify-center bg-black overflow-hidden" onClick={() => setGameState(prev => ({ ...prev, selectedPlacedTowerId: null }))}>
-          {showGacha ? (
+          {showSettings ? (
+            <div className="w-full max-w-2xl bg-zinc-900/90 border-2 border-zinc-700 p-8 rounded-xl shadow-2xl backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-3xl font-creepy text-zinc-100 text-center mb-8 tracking-widest">SYSTEM SETTINGS</h2>
+              <div className="flex flex-col gap-6">
+                <div className="bg-black/40 p-6 rounded border border-zinc-800 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold">Factory Reset</h3>
+                    <p className="text-xs text-zinc-500 uppercase">Wipe all progress and start over</p>
+                  </div>
+                  <button onClick={() => { if (confirm("Are you sure? This will wipe ALL progress!")) { localStorage.removeItem(SAVE_KEY); window.location.reload(); } }} className="px-6 py-3 bg-red-900 hover:bg-red-600 text-white font-bold rounded uppercase transition-all shadow-lg">Reset Data</button>
+                </div>
+                <div className="bg-black/40 p-6 rounded border border-zinc-800 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold">Stuck State Recovery</h3>
+                    <p className="text-xs text-zinc-500 uppercase">Emergency reset of game phases</p>
+                  </div>
+                  <button onClick={() => { setGameState(prev => ({ ...prev, isWaveActive: false, isPrepPhase: false, prepTimeRemaining: 0, enemies: [], projectiles: [] })); setShowSettings(false); }} className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded uppercase transition-all">Recover Phase</button>
+                </div>
+              </div>
+            </div>
+          ) : showGacha ? (
             <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
               <GachaSystem coins={gameState.fazCoins} activeEffects={gameState.activeEffects} onPull={handlePull} onDeductCoins={(amt) => setGameState(prev => ({ ...prev, fazCoins: prev.fazCoins - amt }))} />
             </div>
@@ -704,10 +746,10 @@ const App: React.FC = () => {
             <div className="relative group p-10">
               <GameMap towers={gameState.placedTowers} enemies={gameState.enemies} projectiles={gameState.projectiles} onPlaceTower={handlePlaceTower} onSelectPlacedTower={(tid) => setGameState(prev => ({ ...prev, selectedPlacedTowerId: tid, selectedTowerId: null }))} selectedTowerId={gameState.selectedTowerId} selectedPlacedTowerId={gameState.selectedPlacedTowerId} tickCount={tickCountRef.current} />
               {gameState.isPrepPhase && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-[100] animate-in fade-in duration-500">
-                  <h2 className="text-2xl font-mono-spaced text-yellow-500 mb-2 uppercase tracking-widest font-bold">Preparation Phase</h2>
-                  <div className="text-7xl font-mono-spaced text-white font-bold drop-shadow-[0_0_20px_white] animate-pulse">{gameState.prepTimeRemaining}</div>
-                  <button onClick={() => setGameState(prev => ({ ...prev, prepTimeRemaining: 0 }))} className="mt-8 px-6 py-2 bg-red-900 hover:bg-red-800 text-white font-bold rounded uppercase tracking-widest text-[10px] border border-red-500">Skip Prep</button>
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center bg-black/60 backdrop-blur-md z-[100] p-4 rounded-xl border border-yellow-500/30">
+                  <h2 className="text-[10px] font-mono-spaced text-yellow-500 mb-1 uppercase tracking-widest font-bold">Preparation Phase</h2>
+                  <div className="text-3xl font-mono-spaced text-white font-bold">{gameState.prepTimeRemaining}s</div>
+                  <button onClick={() => setGameState(prev => ({ ...prev, prepTimeRemaining: 0 }))} className="mt-2 px-3 py-1 bg-red-900/40 hover:bg-red-800 text-white font-bold rounded uppercase tracking-widest text-[8px] border border-red-500/50">Skip Prep</button>
                 </div>
               )}
               {!gameState.isWaveActive && !gameState.isPrepPhase && (
