@@ -18,6 +18,7 @@ import {
 } from './constants';
 import GameMap from './components/GameMap';
 import GachaSystem from './components/GachaSystem';
+import TowerIndex from './components/TowerIndex';
 // Removed Gemini import <!-- Gemini Integration Removal -->
 
 const SAVE_KEY = 'fazbear_td_v1_save';
@@ -85,6 +86,7 @@ const App: React.FC = () => {
   const [cheatCode, setCheatCode] = useState("");
   const [showTerminal, setShowTerminal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showIndex, setShowIndex] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const gameLoopRef = useRef<number>(null);
@@ -668,6 +670,10 @@ const App: React.FC = () => {
     );
   }
 
+  if (showIndex) {
+    return <TowerIndex unlockedIds={gameState.inventory} onClose={() => setShowIndex(false)} />;
+  }
+
   const selectedChar: Character | undefined = gameState.selectedTowerId ? CHARACTERS[gameState.selectedTowerId as string] : undefined;
   const selectedPlacedTower: PlacedTower | null | undefined = gameState.selectedPlacedTowerId ? gameState.placedTowers.find(t => t.id === gameState.selectedPlacedTowerId) : null;
   const selectedPlacedChar: Character | null = selectedPlacedTower ? CHARACTERS[selectedPlacedTower.characterId] : null;
@@ -711,9 +717,10 @@ const App: React.FC = () => {
 
           <div className="flex gap-4">
             <button onClick={handleGiveUp} className="px-4 py-2 rounded text-xs border-2 border-red-900/40 text-red-900/60 font-bold tracking-widest hover:bg-red-900/10 hover:text-red-600 hover:border-red-600/40 transition-all">GIVE UP</button>
-            <button onClick={() => { setShowSettings(!showSettings); setShowShop(false); setShowGacha(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showSettings ? 'bg-zinc-700 border-zinc-400 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>SETTINGS</button>
-            <button onClick={() => { setShowShop(!showShop); setShowGacha(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showShop ? 'bg-blue-900 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>FACILITY SHOP</button>
-            <button onClick={() => { setShowGacha(!showGacha); setShowShop(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showGacha ? 'bg-red-900 border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>PRIZE CORNER</button>
+            <button onClick={() => { setShowIndex(true); setShowShop(false); setShowGacha(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showIndex ? 'bg-zinc-800 border-zinc-200 shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>ARCHIVE</button>
+            <button onClick={() => { setShowSettings(!showSettings); setShowShop(false); setShowGacha(false); setShowIndex(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showSettings ? 'bg-zinc-700 border-zinc-400 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>SETTINGS</button>
+            <button onClick={() => { setShowShop(!showShop); setShowGacha(false); setShowSettings(false); setShowIndex(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showShop ? 'bg-blue-900 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>FACILITY SHOP</button>
+            <button onClick={() => { setShowGacha(!showGacha); setShowShop(false); setShowSettings(false); setShowIndex(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showGacha ? 'bg-red-900 border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>PRIZE CORNER</button>
           </div>
         </div>
 
@@ -760,7 +767,7 @@ const App: React.FC = () => {
             <h3 className="text-[11px] font-mono-spaced uppercase text-zinc-500 border-b border-zinc-800 pb-2">Inventory Potions</h3>
             <div className="flex flex-col gap-2 max-h-[20vh] overflow-y-auto">
               {Object.entries(gameState.potions).map(([key, count]) => {
-                if (count <= 0) return null;
+                if ((count as number) <= 0) return null;
                 const [type, tier] = key.split('_');
                 return (
                   <div key={key} className="flex items-center justify-between bg-black/40 p-2 rounded border border-zinc-800 text-[10px]">
