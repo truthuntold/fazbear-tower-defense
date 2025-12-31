@@ -328,14 +328,9 @@ const App: React.FC = () => {
     };
 
     setGameState(prev => {
-      const idx = prev.inventory.indexOf(char.id);
-      if (idx === -1) return prev;
-      const newInventory = [...prev.inventory];
-      newInventory.splice(idx, 1);
       return {
         ...prev,
         fazCoins: prev.fazCoins - char.cost,
-        inventory: newInventory,
         placedTowers: [...prev.placedTowers, newTower],
         selectedTowerId: null,
       };
@@ -364,8 +359,19 @@ const App: React.FC = () => {
       let finalInventory = [...prev.inventory];
       charIds.forEach(id => {
         const char = CHARACTERS[id];
-        if (char && prev.autoSellSettings[char.rarity]) finalCoins += Math.floor(char.cost * 0.5);
-        else finalInventory.push(id);
+        if (!char) return;
+
+        if (prev.inventory.includes(id)) {
+          // Already unlocked, refund 50%
+          finalCoins += Math.floor(char.cost * 0.5);
+        } else if (prev.autoSellSettings[char.rarity]) {
+          // Auto-sell enabled for new unlock? 
+          // Usually auto-sell only applies to duplicates in "unlock" systems, 
+          // but I'll stick to refunding if already owned.
+          finalInventory.push(id);
+        } else {
+          finalInventory.push(id);
+        }
       });
       return { ...prev, fazCoins: finalCoins, inventory: finalInventory };
     });
@@ -515,7 +521,6 @@ const App: React.FC = () => {
       prepTimeRemaining: 0,
       enemies: [],
       projectiles: [],
-      placedTowers: [],
       isGameOver: false,
       hasWon: false
     }));
@@ -536,9 +541,8 @@ const App: React.FC = () => {
           <p className="text-zinc-500 text-xs uppercase mb-4 font-bold tracking-widest text-left">Internal Memo:</p>
           <p className="text-zinc-400 text-sm italic leading-relaxed text-left">"Fazbear Entertainment is a place for joy and fun. Your failure to maintain the safety of our guests (and our expensive equipment) is a breach of contract. Don't let the door hit you on the way out."</p>
         </div>
-        <div className="flex gap-6">
+        <div className="flex justify-center">
           <button onClick={handleRestartShift} className="px-10 py-5 bg-red-900 border-2 border-red-500 hover:bg-red-700 text-white font-black uppercase transition-all shadow-[0_0_30px_rgba(220,38,38,0.4)] hover:scale-105 tracking-widest rounded-sm">Restart Shift</button>
-          <button onClick={handlePlayAgain} className="px-10 py-5 bg-zinc-900 border-2 border-zinc-700 hover:border-white text-zinc-400 hover:text-white font-bold uppercase transition-all tracking-widest rounded-sm">Factory Reset</button>
         </div>
       </div>
     );
@@ -659,19 +663,18 @@ const App: React.FC = () => {
             <h3 className="text-[11px] font-mono-spaced uppercase text-zinc-500 border-b border-zinc-800 pb-2 flex justify-between">Animatronics <span>{gameState.inventory.length}</span></h3>
             <div className="flex flex-col gap-2 max-h-[30vh] overflow-y-auto pr-1">
               {uniqueInventoryIds.map((charId: string) => {
-                const char = CHARACTERS[charId]; const count = gameState.inventory.filter(id => id === charId).length;
+                const char = CHARACTERS[charId];
                 return (
                   <div key={charId} onClick={() => { setGameState(prev => ({ ...prev, selectedTowerId: charId, selectedPlacedTowerId: null })); setShowGacha(false); setShowShop(false); }} className={`p-3 rounded-lg border group transition-all relative ${gameState.selectedTowerId === charId ? 'bg-zinc-800 border-white shadow-xl scale-[1.02]' : 'bg-black/40 border-zinc-800 hover:border-zinc-600'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <span className="text-xs font-bold" style={{ color: RARITY_COLORS[char.rarity] }}>{char.name}</span>
-                      <span className="text-[9px] bg-zinc-900 px-2 py-0.5 rounded text-zinc-400 font-bold border border-zinc-800">x{count}</span>
+                      <span className="text-[7px] text-zinc-600 font-bold uppercase tracking-tighter">Unlocked</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-sm shadow-inner" style={{ backgroundColor: char.color }}></div>
                         <span className="text-[9px] text-zinc-500 font-bold">DMG: {char.damage}</span>
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); sellCharacter(charId); }} className="text-[9px] bg-red-900/40 hover:bg-red-600 text-red-200 px-2 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity">SELL {Math.floor(char.cost * 0.5)}</button>
                     </div>
                   </div>
                 );
