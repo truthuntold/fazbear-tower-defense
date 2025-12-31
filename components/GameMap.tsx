@@ -176,31 +176,161 @@ const GameMap: React.FC<GameMapProps> = ({
                 L{tower.level}
               </div>
 
-              {/* Ears/Hat Visuals */}
+              {/* === BASE VISUALS === */}
+
+              {/* Withered/Glitchy Effects (Background) */}
+              {char.features.includes('withered') && (
+                <div className="absolute inset-0 bg-black/30 w-full h-full" style={{ clipPath: 'polygon(10% 0, 30% 20%, 50% 0, 70% 30%, 90% 0, 100% 40%, 80% 60%, 100% 80%, 70% 100%, 50% 80%, 30% 100%, 10% 70%, 0 100%, 0 0)' }}></div>
+              )}
+              {char.features.includes('glitchy') && (
+                <div className="absolute inset-0 bg-purple-500/20 animate-pulse" style={{ mixBlendMode: 'difference' }}></div>
+              )}
+              {char.features.includes('fire') && (
+                <div className="absolute -inset-2 bg-orange-500/30 blur-sm rounded-full animate-pulse"></div>
+              )}
+
+              {/* === HEAD FEATURES === */}
+
+              {/* Ears: Round (Bears/Bunnies - Default) */}
               {char.features.includes('ears') && (
                 <>
-                  <div className="absolute -top-1.5 left-0.5 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: char.color, filter: 'brightness(0.7)' }}></div>
-                  <div className="absolute -top-1.5 right-0.5 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: char.color, filter: 'brightness(0.7)' }}></div>
+                  <div className="absolute -top-1.5 left-0.5 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: char.color, filter: 'brightness(0.9)' }}></div>
+                  <div className="absolute -top-1.5 right-0.5 w-2.5 h-2.5 rounded-full" style={{ backgroundColor: char.color, filter: 'brightness(0.9)' }}></div>
                 </>
               )}
+              {/* Ears: Long (Bunnies) */}
               {char.features.includes('ears_long') && (
                 <>
-                  <div className="absolute -top-4 left-1 w-2 h-5 rounded-t-full" style={{ backgroundColor: char.color, filter: 'brightness(0.7)' }}></div>
-                  <div className="absolute -top-4 right-1 w-2 h-5 rounded-t-full" style={{ backgroundColor: char.color, filter: 'brightness(0.7)' }}></div>
+                  <div className="absolute -top-4 left-1 w-2 h-5 rounded-t-full" style={{ backgroundColor: char.color, filter: 'brightness(0.9)' }}></div>
+                  <div className="absolute -top-4 right-1 w-2 h-5 rounded-t-full" style={{ backgroundColor: char.color, filter: 'brightness(0.9)' }}></div>
                 </>
               )}
-              {char.features.includes('hat') && <div className="absolute -top-2 w-5 h-3 bg-black rounded-sm border-b border-zinc-800 shadow-md"></div>}
+              {/* Ears: Pointed (Foxes/Dogs) */}
+              {char.features.includes('ears_pointed') && (
+                <>
+                  <div className="absolute -top-2 left-0 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[8px]" style={{ borderBottomColor: char.color, transform: 'rotate(-20deg)' }}></div>
+                  <div className="absolute -top-2 right-0 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[8px]" style={{ borderBottomColor: char.color, transform: 'rotate(20deg)' }}></div>
+                </>
+              )}
+              {/* Hair/Pigtails */}
+              {char.features.includes('pigtails') && (
+                <>
+                  <div className="absolute -top-1 -left-2 w-3 h-4 bg-orange-600 rounded-full"></div>
+                  <div className="absolute -top-1 -right-2 w-3 h-4 bg-orange-600 rounded-full"></div>
+                </>
+              )}
+              {char.features.includes('hair') && (
+                <div className="absolute -top-1 inset-x-0 h-2 bg-gray-300 rounded-t-lg mx-auto w-8"></div>
+              )}
 
-              {/* Face Details */}
-              <div className="absolute top-2 w-full flex justify-around px-2">
-                <div className="w-1.5 h-1.5 bg-white rounded-full flex items-center justify-center">
-                  <div className="w-0.5 h-0.5 bg-black rounded-full"></div>
+
+              {/* Hat */}
+              {char.features.includes('hat') && <div className="absolute -top-2 w-5 h-4 bg-black rounded-sm border-b-2 border-zinc-700 shadow-md transform -translate-y-1"></div>}
+              {char.features.includes('propeller') && (
+                <div className="absolute -top-3 w-6 h-1 bg-red-500 animate-spin origin-center rounded-full z-20">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full"></div>
                 </div>
-                <div className="w-1.5 h-1.5 bg-white rounded-full flex items-center justify-center">
-                  <div className="w-0.5 h-0.5 bg-black rounded-full"></div>
+              )}
+
+              {/* === FACE === */}
+              {char.features.includes('mask') ? (
+                <div className="absolute inset-1 bg-white rounded-full border border-gray-300 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full mr-2"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full ml-2"></div>
+                  {char.name.includes('Puppet') || char.name.includes('Marionne') ? (
+                    <>
+                      <div className="absolute top-4 w-2 h-3 bg-purple-500/50 rounded-full blur-[1px]"></div>
+                      <div className="absolute bottom-1 w-3 h-1 bg-black rounded-full"></div>
+                    </>
+                  ) : null}
                 </div>
-              </div>
-              <div className="absolute top-5 w-4 h-1.5 bg-black/40 rounded-full"></div>
+              ) : (
+                <div className="absolute top-2 w-full flex justify-around px-2 z-10">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full flex items-center justify-center shadow-inner">
+                    <div className={`w-0.5 h-0.5 bg-black rounded-full ${char.features.includes('eyepatch') ? 'hidden' : ''}`}></div>
+                    {char.features.includes('eyepatch') && <div className="absolute inset-0 bg-black rounded-full opacity-90 border border-zinc-800"></div>}
+                  </div>
+                  <div className="w-1.5 h-1.5 bg-white rounded-full flex items-center justify-center shadow-inner">
+                    {char.features.includes('glowing_eye') ? (
+                      <div className="w-0.5 h-0.5 bg-red-500 shadow-[0_0_4px_red] rounded-full"></div>
+                    ) : (
+                      <div className="w-0.5 h-0.5 bg-black rounded-full"></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Cheeks */}
+              {char.features.includes('cheeks') && (
+                <>
+                  <div className="absolute top-4 left-0.5 w-1.5 h-1.5 bg-red-500/60 rounded-full blur-[0.5px]"></div>
+                  <div className="absolute top-4 right-0.5 w-1.5 h-1.5 bg-red-500/60 rounded-full blur-[0.5px]"></div>
+                </>
+              )}
+
+              {/* Snout/Beak */}
+              {char.features.includes('beak') ? (
+                <div className="absolute top-4 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-orange-500 z-10"></div>
+              ) : (
+                !char.features.includes('mask') && <div className="absolute top-4 w-4 h-2 bg-black/20 rounded-full z-10"></div>
+              )}
+
+              {/* Teeth */}
+              {char.features.includes('teeth') && (
+                <div className="absolute top-5 flex justify-center space-x-[1px] w-full px-3">
+                  <div className="w-0.5 h-1 bg-white rounded-b-sm"></div>
+                  <div className="w-0.5 h-1 bg-white rounded-b-sm"></div>
+                  <div className="w-0.5 h-1 bg-white rounded-b-sm"></div>
+                  <div className="w-0.5 h-1 bg-white rounded-b-sm"></div>
+                </div>
+              )}
+
+              {/* === BODY & EXTRAS === */}
+
+              {/* Bowtie */}
+              {char.features.includes('bowtie') && (
+                <div className="absolute top-7 w-3 h-1.5 flex justify-center items-center z-20">
+                  <div className="w-0 h-0 border-l-[3px] border-l-transparent border-t-[3px] border-t-black border-b-[3px] border-b-black transform rotate-90"></div>
+                  <div className="w-0.5 h-0.5 bg-black rounded-full"></div>
+                  <div className="w-0 h-0 border-l-[3px] border-l-transparent border-t-[3px] border-t-black border-b-[3px] border-b-black transform -rotate-90"></div>
+                </div>
+              )}
+              {/* Bib */}
+              {char.features.includes('bib') && (
+                <div className="absolute top-6 w-5 h-3 bg-white rounded-b-full text-[4px] text-center leading-[4px] flex items-center justify-center border border-gray-200">
+                  LET'S<br />EAT
+                </div>
+              )}
+              {/* Vest/Suit details */}
+              {char.features.includes('vest') && (
+                <div className="absolute top-6 w-4 h-4 bg-purple-700 rounded-sm"></div>
+              )}
+
+              {/* Held Items (Hook, Sign, Mic) */}
+              {char.features.includes('hook') && (
+                <div className="absolute top-4 -right-1 w-2 h-3 border-2 border-gray-400 rounded-b-lg border-t-0 transform scale-75"></div>
+              )}
+              {char.features.includes('sign') && (
+                <div className="absolute bottom-0 -left-1 w-3 h-2 bg-white border border-gray-800 transform -rotate-12 z-30">
+                  <div className="w-full h-full text-[3px] flex items-center justify-center">HI</div>
+                </div>
+              )}
+
+              {/* Special Boss/Mythic Features */}
+              {char.features.includes('many_heads') && (
+                <>
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full border border-black"></div>
+                  <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white rounded-full border border-black"></div>
+                  <div className="absolute top-1/2 -right-2 w-2 h-2 bg-white rounded-full border border-black"></div>
+                </>
+              )}
+              {char.features.includes('wires') && (
+                <>
+                  <div className="absolute -left-1 top-2 w-2 h-[1px] bg-gray-600 rotate-12"></div>
+                  <div className="absolute -right-1 bottom-3 w-2 h-[1px] bg-gray-600 -rotate-12"></div>
+                  <div className="absolute left-2 -bottom-1 w-[1px] h-2 bg-gray-600"></div>
+                </>
+              )}
             </div>
 
             {/* Range Circle */}
@@ -259,7 +389,7 @@ const GameMap: React.FC<GameMapProps> = ({
       {/* Start/End labels */}
       <div className="absolute top-0 left-0 p-1 bg-green-900/40 text-green-500 text-[8px] font-bold uppercase z-10">Entry Point</div>
       <div className="absolute bottom-0 right-0 p-1 bg-red-900/40 text-red-500 text-[8px] font-bold uppercase z-10">Office Vent</div>
-    </div>
+    </div >
   );
 };
 

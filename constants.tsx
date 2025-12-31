@@ -3,42 +3,42 @@ import { Rarity, Character, Position, Difficulty, PotionType } from './types';
 
 export const CHARACTERS: Record<string, Character> = {
   // COMMON
-  'freddy': { id: 'freddy', name: 'Freddy Fazbear', rarity: Rarity.COMMON, damage: 12, range: 2.5, fireRate: 35, cost: 50, color: '#6d4c41', gameOrigin: 'FNAF 1', features: ['hat', 'ears'] },
-  'bonnie': { id: 'bonnie', name: 'Bonnie', rarity: Rarity.COMMON, damage: 8, range: 2, fireRate: 20, cost: 45, color: '#7986cb', gameOrigin: 'FNAF 1', features: ['ears_long'] },
-  'chica': { id: 'chica', name: 'Chica', rarity: Rarity.COMMON, damage: 18, range: 2.2, fireRate: 45, cost: 60, color: '#fff176', gameOrigin: 'FNAF 1', features: ['beak'] },
-  'foxy': { id: 'foxy', name: 'Foxy', rarity: Rarity.COMMON, damage: 6, range: 3.5, fireRate: 15, cost: 75, color: '#e57373', gameOrigin: 'FNAF 1', features: ['ears'] },
+  'freddy': { id: 'freddy', name: 'Freddy Fazbear', rarity: Rarity.COMMON, damage: 12, range: 2.5, fireRate: 35, cost: 50, color: '#6d4c41', gameOrigin: 'FNAF 1', features: ['hat', 'ears', 'bowtie'] },
+  'bonnie': { id: 'bonnie', name: 'Bonnie', rarity: Rarity.COMMON, damage: 8, range: 2, fireRate: 20, cost: 45, color: '#7986cb', gameOrigin: 'FNAF 1', features: ['ears_long', 'bowtie'] },
+  'chica': { id: 'chica', name: 'Chica', rarity: Rarity.COMMON, damage: 18, range: 2.2, fireRate: 45, cost: 60, color: '#fff176', gameOrigin: 'FNAF 1', features: ['beak', 'bib'] },
+  'foxy': { id: 'foxy', name: 'Foxy', rarity: Rarity.COMMON, damage: 6, range: 3.5, fireRate: 15, cost: 75, color: '#e57373', gameOrigin: 'FNAF 1', features: ['ears_pointed', 'eyepatch'] },
   'endo_01': { id: 'endo_01', name: 'Endo-01', rarity: Rarity.COMMON, damage: 10, range: 2.0, fireRate: 30, cost: 40, color: '#9e9e9e', gameOrigin: 'FNAF 1', features: ['wires'] },
 
   // UNCOMMON
-  'toy_freddy': { id: 'toy_freddy', name: 'Toy Freddy', rarity: Rarity.UNCOMMON, damage: 25, range: 3, fireRate: 40, cost: 130, color: '#8d6e63', gameOrigin: 'FNAF 2', features: ['hat', 'ears'] },
-  'toy_bonnie': { id: 'toy_bonnie', name: 'Toy Bonnie', rarity: Rarity.UNCOMMON, damage: 15, range: 2.5, fireRate: 20, cost: 120, color: '#4fc3f7', gameOrigin: 'FNAF 2', features: ['ears_long'] },
-  'mangle': { id: 'mangle', name: 'Mangle', rarity: Rarity.UNCOMMON, damage: 20, range: 3.5, fireRate: 30, cost: 150, color: '#fce4ec', gameOrigin: 'FNAF 2', features: ['ears', 'withered'] },
-  'balloon_boy': { id: 'balloon_boy', name: 'Balloon Boy', rarity: Rarity.UNCOMMON, damage: 2, range: 5, fireRate: 30, cost: 110, color: '#f44336', gameOrigin: 'FNAF 2', features: ['propeller'], ability: 'slow' },
+  'toy_freddy': { id: 'toy_freddy', name: 'Toy Freddy', rarity: Rarity.UNCOMMON, damage: 25, range: 3, fireRate: 40, cost: 130, color: '#8d6e63', gameOrigin: 'FNAF 2', features: ['hat', 'ears', 'bowtie', 'cheeks'] },
+  'toy_bonnie': { id: 'toy_bonnie', name: 'Toy Bonnie', rarity: Rarity.UNCOMMON, damage: 15, range: 2.5, fireRate: 20, cost: 120, color: '#4fc3f7', gameOrigin: 'FNAF 2', features: ['ears_long', 'bowtie', 'cheeks'] },
+  'mangle': { id: 'mangle', name: 'Mangle', rarity: Rarity.UNCOMMON, damage: 20, range: 3.5, fireRate: 30, cost: 150, color: '#fce4ec', gameOrigin: 'FNAF 2', features: ['ears_pointed', 'withered', 'cheeks', 'wires'] },
+  'balloon_boy': { id: 'balloon_boy', name: 'Balloon Boy', rarity: Rarity.UNCOMMON, damage: 2, range: 5, fireRate: 30, cost: 110, color: '#f44336', gameOrigin: 'FNAF 2', features: ['propeller', 'hat', 'cheeks', 'sign'], ability: 'slow' },
 
   // RARE
-  'withered_freddy': { id: 'withered_freddy', name: 'Withered Freddy', rarity: Rarity.RARE, damage: 55, range: 3.2, fireRate: 60, cost: 350, color: '#5d4037', gameOrigin: 'FNAF 2', features: ['hat', 'ears', 'withered'] },
-  'puppet': { id: 'puppet', name: 'The Puppet', rarity: Rarity.RARE, damage: 40, range: 4.5, fireRate: 35, cost: 400, color: '#ffffff', gameOrigin: 'FNAF 2', features: ['mask'] },
-  'sparky': { id: 'sparky', name: 'Sparky the Dog', rarity: Rarity.RARE, damage: 70, range: 2.8, fireRate: 25, cost: 380, color: '#5d4037', gameOrigin: 'Hoax', features: ['ears'] },
+  'withered_freddy': { id: 'withered_freddy', name: 'Withered Freddy', rarity: Rarity.RARE, damage: 55, range: 3.2, fireRate: 60, cost: 350, color: '#5d4037', gameOrigin: 'FNAF 2', features: ['hat', 'ears', 'withered', 'bowtie'] },
+  'puppet': { id: 'puppet', name: 'The Puppet', rarity: Rarity.RARE, damage: 40, range: 4.5, fireRate: 35, cost: 400, color: '#111111', gameOrigin: 'FNAF 2', features: ['mask', 'cheeks'] },
+  'sparky': { id: 'sparky', name: 'Sparky the Dog', rarity: Rarity.RARE, damage: 70, range: 2.8, fireRate: 25, cost: 380, color: '#5d4037', gameOrigin: 'Hoax', features: ['ears_pointed', 'withered'] },
 
   // EPIC
-  'springtrap': { id: 'springtrap', name: 'Springtrap', rarity: Rarity.EPIC, damage: 95, range: 3.5, fireRate: 45, cost: 900, color: '#9e9d24', gameOrigin: 'FNAF 3', features: ['ears_long', 'withered'] },
-  'nightmare_fredbear': { id: 'nightmare_fredbear', name: 'Nightmare Fredbear', rarity: Rarity.EPIC, damage: 150, range: 4, fireRate: 55, cost: 1200, color: '#fbc02d', gameOrigin: 'FNAF 4', features: ['hat', 'ears', 'teeth'] },
-  'dreadbear': { id: 'dreadbear', name: 'Dreadbear', rarity: Rarity.EPIC, damage: 180, range: 3.2, fireRate: 70, cost: 1300, color: '#2e7d32', gameOrigin: 'Help Wanted', features: ['hat', 'ears', 'stitched'] },
+  'springtrap': { id: 'springtrap', name: 'Springtrap', rarity: Rarity.EPIC, damage: 95, range: 3.5, fireRate: 45, cost: 900, color: '#7cb342', gameOrigin: 'FNAF 3', features: ['ears_long', 'withered', 'bowtie'] },
+  'nightmare_fredbear': { id: 'nightmare_fredbear', name: 'Nightmare Fredbear', rarity: Rarity.EPIC, damage: 150, range: 4, fireRate: 55, cost: 1200, color: '#fbc02d', gameOrigin: 'FNAF 4', features: ['hat', 'ears', 'teeth', 'bowtie'] },
+  'dreadbear': { id: 'dreadbear', name: 'Dreadbear', rarity: Rarity.EPIC, damage: 180, range: 3.2, fireRate: 70, cost: 1300, color: '#2e7d32', gameOrigin: 'Help Wanted', features: ['hat', 'ears', 'stitched', 'bolts'] },
 
   // LEGENDARY
-  'circus_baby': { id: 'circus_baby', name: 'Circus Baby', rarity: Rarity.LEGENDARY, damage: 280, range: 4.5, fireRate: 50, cost: 2200, color: '#d32f2f', gameOrigin: 'Sister Location', features: ['pigtails'] },
-  'molten_freddy': { id: 'molten_freddy', name: 'Molten Freddy', rarity: Rarity.LEGENDARY, damage: 220, range: 5, fireRate: 30, cost: 2500, color: '#ef6c00', gameOrigin: 'FFPS', features: ['mask', 'wires'] },
-  'grimm_foxy': { id: 'grimm_foxy', name: 'Grimm Foxy', rarity: Rarity.LEGENDARY, damage: 190, range: 6, fireRate: 20, cost: 2800, color: '#ff3d00', gameOrigin: 'Curse of Dreadbear', features: ['ears', 'fire'] },
+  'circus_baby': { id: 'circus_baby', name: 'Circus Baby', rarity: Rarity.LEGENDARY, damage: 280, range: 4.5, fireRate: 50, cost: 2200, color: '#d32f2f', gameOrigin: 'Sister Location', features: ['pigtails', 'cheeks'] },
+  'molten_freddy': { id: 'molten_freddy', name: 'Molten Freddy', rarity: Rarity.LEGENDARY, damage: 220, range: 5, fireRate: 30, cost: 2500, color: '#ef6c00', gameOrigin: 'FFPS', features: ['mask', 'wires', 'bowtie'] },
+  'grimm_foxy': { id: 'grimm_foxy', name: 'Grimm Foxy', rarity: Rarity.LEGENDARY, damage: 190, range: 6, fireRate: 20, cost: 2800, color: '#ff3d00', gameOrigin: 'Curse of Dreadbear', features: ['ears_pointed', 'fire', 'hook'] },
 
   // MYTHIC
-  'glitchtrap': { id: 'glitchtrap', name: 'Glitchtrap', rarity: Rarity.MYTHIC, damage: 450, range: 7, fireRate: 40, cost: 5500, color: '#ffeb3b', gameOrigin: 'Help Wanted', features: ['ears_long', 'suit'] },
-  'shattered_roxanne': { id: 'shattered_roxanne', name: 'Shattered Roxanne', rarity: Rarity.MYTHIC, damage: 500, range: 5.5, fireRate: 25, cost: 6500, color: '#9c27b0', gameOrigin: 'Security Breach', features: ['ears', 'withered'] },
-  'the_blob': { id: 'the_blob', name: 'The Blob', rarity: Rarity.MYTHIC, damage: 350, range: 8, fireRate: 35, cost: 8000, color: '#424242', gameOrigin: 'Security Breach', features: ['wires', 'many_heads'] },
+  'glitchtrap': { id: 'glitchtrap', name: 'Glitchtrap', rarity: Rarity.MYTHIC, damage: 450, range: 7, fireRate: 40, cost: 5500, color: '#ffeb3b', gameOrigin: 'Help Wanted', features: ['ears_long', 'suit', 'bowtie', 'vest'] },
+  'shattered_roxanne': { id: 'shattered_roxanne', name: 'Shattered Roxanne', rarity: Rarity.MYTHIC, damage: 500, range: 5.5, fireRate: 25, cost: 6500, color: '#9c27b0', gameOrigin: 'Security Breach', features: ['ears_pointed', 'withered', 'hair'] },
+  'the_blob': { id: 'the_blob', name: 'The Blob', rarity: Rarity.MYTHIC, damage: 350, range: 8, fireRate: 35, cost: 8000, color: '#424242', gameOrigin: 'Security Breach', features: ['wires', 'many_heads', 'mask'] },
 
   // SECRET
-  'golden_freddy': { id: 'golden_freddy', name: 'Golden Freddy', rarity: Rarity.SECRET, damage: 1983, range: 12, fireRate: 120, cost: 10000, color: '#ffd600', gameOrigin: 'FNAF 1', features: ['hat', 'ears', 'ghostly'] },
-  'nightmarionne': { id: 'nightmarionne', name: 'Nightmarionne', rarity: Rarity.SECRET, damage: 850, range: 10, fireRate: 20, cost: 15000, color: '#0a0a0a', gameOrigin: 'FNAF 4', features: ['mask', 'long_limbs'], ability: 'slow' },
-  'shadow_bonnie': { id: 'shadow_bonnie', name: 'Shadow Bonnie', rarity: Rarity.SECRET, damage: 1200, range: 6, fireRate: 15, cost: 20000, color: '#1a1a1a', gameOrigin: 'FNAF 2', features: ['ears_long', 'glitchy'] },
+  'golden_freddy': { id: 'golden_freddy', name: 'Golden Freddy', rarity: Rarity.SECRET, damage: 1983, range: 12, fireRate: 120, cost: 10000, color: '#ffd600', gameOrigin: 'FNAF 1', features: ['hat', 'ears', 'ghostly', 'bowtie'] },
+  'nightmarionne': { id: 'nightmarionne', name: 'Nightmarionne', rarity: Rarity.SECRET, damage: 850, range: 10, fireRate: 20, cost: 15000, color: '#0a0a0a', gameOrigin: 'FNAF 4', features: ['mask', 'long_limbs', 'stripes'], ability: 'slow' },
+  'shadow_bonnie': { id: 'shadow_bonnie', name: 'Shadow Bonnie', rarity: Rarity.SECRET, damage: 1200, range: 6, fireRate: 15, cost: 20000, color: '#1a1a1a', gameOrigin: 'FNAF 2', features: ['ears_long', 'glitchy', 'teeth'] },
 };
 
 export const RARITY_ORDER: Rarity[] = [
