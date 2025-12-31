@@ -428,7 +428,7 @@ const App: React.FC = () => {
 
         updatedTowers.forEach(tower => {
           const char = CHARACTERS[tower.characterId];
-          if (char && (tickCountRef.current - tower.lastFired >= char.fireRate)) {
+          if (char) {
             const scalingFactor = RARITY_UPGRADE_SCALING[char.rarity];
             const currentDamage = Math.floor(char.damage * Math.pow(scalingFactor, tower.level - 1));
             const currentFireRate = tower.level >= 5 ? Math.max(5, char.fireRate - 5) : char.fireRate;
@@ -460,7 +460,7 @@ const App: React.FC = () => {
                   y: PATH[target.positionIndex].y + (PATH[target.positionIndex + 1]?.y - PATH[target.positionIndex].y || 0) * target.lerpFactor
                 },
                 startTime: tickCountRef.current,
-                duration: 5,
+                duration: 15,
                 color: char.color
               });
             }
