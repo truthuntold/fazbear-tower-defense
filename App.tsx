@@ -71,6 +71,7 @@ const App: React.FC = () => {
       gameSpeed: 1,
       purchasedSpeeds: [1],
       hasWon: false,
+      isGameOver: false,
     };
   });
 
@@ -105,7 +106,8 @@ const App: React.FC = () => {
     gameState.activeEffects,
     gameState.difficulty,
     gameState.autoSellSettings,
-    gameState.purchasedSpeeds
+    gameState.purchasedSpeeds,
+    gameState.isGameOver
   ]);
 
   // Update Active Effects
@@ -270,7 +272,7 @@ const App: React.FC = () => {
   };
 
   const startWave = () => {
-    if (gameState.isWaveActive || gameState.isPrepPhase || !gameState.difficulty) return;
+    if (gameState.isWaveActive || gameState.isPrepPhase || !gameState.difficulty || gameState.isGameOver) return;
     const nextWave = gameState.wave + 1;
 
     if (nextWave > VICTORY_WAVE) {
@@ -392,7 +394,7 @@ const App: React.FC = () => {
       tickCountRef.current++;
 
       setGameState(prev => {
-        if (!prev.isWaveActive && prev.projectiles.length === 0) return prev;
+        if ((!prev.isWaveActive && prev.projectiles.length === 0) || prev.isGameOver) return prev;
 
         const updatedEnemies = [...prev.enemies];
         const updatedTowers = [...prev.placedTowers];
@@ -481,6 +483,7 @@ const App: React.FC = () => {
           enemies: updatedEnemies,
           projectiles: updatedProjectiles,
           isWaveActive: updatedEnemies.length > 0,
+          isGameOver: newHealth <= 0
         };
       });
     }
@@ -501,6 +504,45 @@ const App: React.FC = () => {
     localStorage.removeItem(SAVE_KEY);
     window.location.reload();
   };
+
+  const handleRestartShift = () => {
+    setGameState(prev => ({
+      ...prev,
+      health: STARTING_HEALTH,
+      wave: 0,
+      isWaveActive: false,
+      isPrepPhase: false,
+      prepTimeRemaining: 0,
+      enemies: [],
+      projectiles: [],
+      placedTowers: [],
+      isGameOver: false,
+      hasWon: false
+    }));
+  };
+
+  const handleGiveUp = () => {
+    if (confirm("Management requires your full attention. Are you sure you want to give up on this shift?")) {
+      setGameState(prev => ({ ...prev, isGameOver: true, health: 0 }));
+    }
+  };
+
+  if (gameState.isGameOver) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-black crt text-center">
+        <h2 className="font-creepy text-red-600 mb-4 animate-pulse tracking-[0.2em] text-[120px] leading-none">YOU'RE FIRED</h2>
+        <h3 className="text-xl font-mono-spaced text-zinc-500 mb-12 uppercase tracking-widest border-y border-zinc-800 py-4 px-12">Termination Notice: Performance Sub-Optimal</h3>
+        <div className="bg-zinc-900/50 p-8 border border-zinc-800 rounded-lg mb-12 max-w-md w-full">
+          <p className="text-zinc-500 text-xs uppercase mb-4 font-bold tracking-widest text-left">Internal Memo:</p>
+          <p className="text-zinc-400 text-sm italic leading-relaxed text-left">"Fazbear Entertainment is a place for joy and fun. Your failure to maintain the safety of our guests (and our expensive equipment) is a breach of contract. Don't let the door hit you on the way out."</p>
+        </div>
+        <div className="flex gap-6">
+          <button onClick={handleRestartShift} className="px-10 py-5 bg-red-900 border-2 border-red-500 hover:bg-red-700 text-white font-black uppercase transition-all shadow-[0_0_30px_rgba(220,38,38,0.4)] hover:scale-105 tracking-widest rounded-sm">Restart Shift</button>
+          <button onClick={handlePlayAgain} className="px-10 py-5 bg-zinc-900 border-2 border-zinc-700 hover:border-white text-zinc-400 hover:text-white font-bold uppercase transition-all tracking-widest rounded-sm">Factory Reset</button>
+        </div>
+      </div>
+    );
+  }
 
   if (gameState.hasWon) {
     return (
@@ -598,6 +640,7 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex gap-4">
+            <button onClick={handleGiveUp} className="px-4 py-2 rounded text-xs border-2 border-red-900/40 text-red-900/60 font-bold tracking-widest hover:bg-red-900/10 hover:text-red-600 hover:border-red-600/40 transition-all">GIVE UP</button>
             <button onClick={() => { setShowSettings(!showSettings); setShowShop(false); setShowGacha(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showSettings ? 'bg-zinc-700 border-zinc-400 shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>SETTINGS</button>
             <button onClick={() => { setShowShop(!showShop); setShowGacha(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showShop ? 'bg-blue-900 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>FACILITY SHOP</button>
             <button onClick={() => { setShowGacha(!showGacha); setShowShop(false); setShowSettings(false); }} className={`px-4 py-2 rounded text-xs border-2 font-bold tracking-widest transition-all ${showGacha ? 'bg-red-900 border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.5)]' : 'border-zinc-700 text-zinc-400 hover:border-zinc-300'}`}>PRIZE CORNER</button>

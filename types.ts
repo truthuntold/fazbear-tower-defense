@@ -104,4 +104,5 @@ export interface GameState {
   gameSpeed: number;
   purchasedSpeeds: number[]; // [1, 2, 3]
   hasWon: boolean;
+  isGameOver: boolean;
 }
