@@ -36,6 +36,7 @@ const App: React.FC = () => {
           isWaveActive: false,
           isPrepPhase: false,
           prepTimeRemaining: 0,
+          placedTowers: (parsed.placedTowers || []).map((t: PlacedTower) => ({ ...t, lastFired: 0 }))
         };
       } catch (e) {
         console.error("Failed to parse save", e);
@@ -400,10 +401,18 @@ const App: React.FC = () => {
     // Target 30 logic ticks per second at 1x speed
     const baseInterval = 33.3;
     const effectiveInterval = baseInterval / gameState.gameSpeed;
+    const maxTicksPerFrame = 5;
 
     if (elapsed >= effectiveInterval) {
-      const numTicks = Math.floor(elapsed / effectiveInterval);
-      lastTickRef.current = time - (elapsed % effectiveInterval);
+      let numTicks = Math.floor(elapsed / effectiveInterval);
+
+      // If we fall too far behind (e.g. tab was inactive), discard overdue ticks
+      if (numTicks > maxTicksPerFrame * 2) {
+        lastTickRef.current = time;
+        numTicks = maxTicksPerFrame;
+      } else {
+        lastTickRef.current += numTicks * effectiveInterval;
+      }
 
       setGameState(prev => {
         if ((!prev.isWaveActive && prev.projectiles.length === 0) || prev.isGameOver) return prev;
@@ -411,7 +420,7 @@ const App: React.FC = () => {
         let workingState = { ...prev };
 
         // Process multiple ticks if needed (cap at 5 to prevent performance issues)
-        const ticksToRun = Math.min(numTicks, 5);
+        const ticksToRun = Math.min(numTicks, maxTicksPerFrame);
 
         for (let t = 0; t < ticksToRun; t++) {
           tickCountRef.current++;
@@ -540,9 +549,12 @@ const App: React.FC = () => {
       prepTimeRemaining: 0,
       enemies: [],
       projectiles: [],
+      placedTowers: prev.placedTowers.map(t => ({ ...t, lastFired: 0 })),
       isGameOver: false,
       hasWon: false
     }));
+    tickCountRef.current = 0;
+    lastTickRef.current = 0;
   };
 
   const handleGiveUp = () => {
