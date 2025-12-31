@@ -73,6 +73,7 @@ const App: React.FC = () => {
       purchasedSpeeds: [1],
       hasWon: false,
       isGameOver: false,
+      autoSkipPrep: false,
     };
   });
 
@@ -108,7 +109,8 @@ const App: React.FC = () => {
     gameState.difficulty,
     gameState.autoSellSettings,
     gameState.purchasedSpeeds,
-    gameState.isGameOver
+    gameState.isGameOver,
+    gameState.autoSkipPrep
   ]);
 
   // Update Active Effects
@@ -151,7 +153,7 @@ const App: React.FC = () => {
         speed: baseSpeed * config.speedMult,
         originalSpeed: baseSpeed * config.speedMult,
         positionIndex: 0,
-        lerpFactor: -i * (isBoss ? 5.0 : 1.8),
+        lerpFactor: -i * 1.5, // Fixed spacing to prevent Wave 5 stalling
         slowTimer: 0,
       };
     });
@@ -160,7 +162,15 @@ const App: React.FC = () => {
   // Prep Phase Timer
   useEffect(() => {
     let timer: number | undefined;
-    if (gameState.isPrepPhase && gameState.prepTimeRemaining > 0) {
+    if (gameState.isPrepPhase) {
+      if (gameState.autoSkipPrep || gameState.prepTimeRemaining <= 0) {
+        setGameState(prev => {
+          const newEnemies = generateEnemies(prev);
+          return { ...prev, isPrepPhase: false, prepTimeRemaining: 0, isWaveActive: true, enemies: newEnemies };
+        });
+        return;
+      }
+
       timer = window.setInterval(() => {
         setGameState(prev => {
           if (prev.prepTimeRemaining <= 1) {
@@ -354,6 +364,30 @@ const App: React.FC = () => {
     });
   };
 
+  const sellPlacedTower = (towerId: string) => {
+    setGameState(prev => {
+      const tower = prev.placedTowers.find(t => t.id === towerId);
+      if (!tower) return prev;
+      const char = CHARACTERS[tower.characterId];
+      if (!char) return prev;
+
+      // Total spent = base cost + sum of all upgrades
+      let totalSpent = char.cost;
+      for (let i = 1; i < tower.level; i++) {
+        totalSpent += Math.floor(char.cost * Math.pow(1.5, i));
+      }
+
+      const refund = Math.floor(totalSpent * 0.6);
+
+      return {
+        ...prev,
+        fazCoins: prev.fazCoins + refund,
+        placedTowers: prev.placedTowers.filter(t => t.id !== towerId),
+        selectedPlacedTowerId: prev.selectedPlacedTowerId === towerId ? null : prev.selectedPlacedTowerId
+      };
+    });
+  };
+
   const handlePull = (charIds: string[]) => {
     setGameState(prev => {
       let finalCoins = prev.fazCoins;
@@ -500,7 +534,8 @@ const App: React.FC = () => {
             if (updatedEnemies[i].hp <= 0) {
               const killedEnemy = updatedEnemies[i];
               updatedEnemies.splice(i, 1);
-              const reward = killedEnemy.type === 'Boss' ? 100 : FAZ_COIN_DROP;
+              // Scale Faz-Coin rewards based on enemy health
+              const reward = Math.floor(killedEnemy.maxHp * 0.15 + 5);
               newCoins += Math.floor(reward * diffConfig.coinMult * moneyMult);
             }
           }
@@ -695,16 +730,24 @@ const App: React.FC = () => {
             <div className="flex flex-col gap-2 max-h-[30vh] overflow-y-auto pr-1">
               {uniqueInventoryIds.map((charId: string) => {
                 const char = CHARACTERS[charId];
+                const canAfford = gameState.fazCoins >= char.cost;
                 return (
-                  <div key={charId} onClick={() => { setGameState(prev => ({ ...prev, selectedTowerId: charId, selectedPlacedTowerId: null })); setShowGacha(false); setShowShop(false); }} className={`p-3 rounded-lg border group transition-all relative ${gameState.selectedTowerId === charId ? 'bg-zinc-800 border-white shadow-xl scale-[1.02]' : 'bg-black/40 border-zinc-800 hover:border-zinc-600'}`}>
+                  <div
+                    key={charId}
+                    onClick={() => { setGameState(prev => ({ ...prev, selectedTowerId: charId, selectedPlacedTowerId: null })); setShowGacha(false); setShowShop(false); }}
+                    className={`p-3 rounded-lg border group transition-all relative cursor-pointer ${gameState.selectedTowerId === charId ? 'bg-zinc-800 border-white shadow-xl scale-[1.02]' : canAfford ? 'bg-black/40 border-zinc-800 hover:border-zinc-600' : 'bg-red-950/20 border-red-900/40 opacity-80'}`}
+                  >
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-bold" style={{ color: RARITY_COLORS[char.rarity] }}>{char.name}</span>
+                      <span className="text-xs font-bold" style={{ color: canAfford ? RARITY_COLORS[char.rarity] : '#ef4444' }}>{char.name}</span>
                       <span className="text-[7px] text-zinc-600 font-bold uppercase tracking-tighter">Unlocked</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-sm shadow-inner" style={{ backgroundColor: char.color }}></div>
-                        <span className="text-[9px] text-zinc-500 font-bold">DMG: {char.damage}</span>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] text-zinc-500 font-bold">DMG: {char.damage}</span>
+                          <span className={`text-[9px] font-bold ${canAfford ? 'text-yellow-600' : 'text-red-500 animate-pulse'}`}>COST: {char.cost} FC</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -771,6 +814,13 @@ const App: React.FC = () => {
                   </div>
                   <button onClick={() => { setGameState(prev => ({ ...prev, isWaveActive: false, isPrepPhase: false, prepTimeRemaining: 0, enemies: [], projectiles: [] })); setShowSettings(false); }} className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded uppercase transition-all">Recover Phase</button>
                 </div>
+                <div className="bg-black/40 p-6 rounded border border-zinc-800 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-bold">Auto-Skip Prep Shift</h3>
+                    <p className="text-xs text-zinc-500 uppercase">Skip the timer between waves automatically</p>
+                  </div>
+                  <button onClick={() => setGameState(prev => ({ ...prev, autoSkipPrep: !prev.autoSkipPrep }))} className={`px-6 py-3 border-2 font-bold rounded uppercase transition-all ${gameState.autoSkipPrep ? 'bg-green-900 border-green-500 text-green-200' : 'bg-black border-zinc-700 text-zinc-500 hover:border-zinc-500'}`}>{gameState.autoSkipPrep ? 'ENABLED' : 'DISABLED'}</button>
+                </div>
               </div>
             </div>
           ) : showGacha ? (
@@ -826,7 +876,10 @@ const App: React.FC = () => {
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center bg-black/60 backdrop-blur-md z-[100] p-4 rounded-xl border border-yellow-500/30">
                   <h2 className="text-[10px] font-mono-spaced text-yellow-500 mb-1 uppercase tracking-widest font-bold">Preparation Phase</h2>
                   <div className="text-3xl font-mono-spaced text-white font-bold">{gameState.prepTimeRemaining}s</div>
-                  <button onClick={() => setGameState(prev => ({ ...prev, prepTimeRemaining: 0 }))} className="mt-2 px-3 py-1 bg-red-900/40 hover:bg-red-800 text-white font-bold rounded uppercase tracking-widest text-[8px] border border-red-500/50">Skip Prep</button>
+                  <div className="flex gap-4 mt-3">
+                    <button onClick={() => setGameState(prev => ({ ...prev, prepTimeRemaining: 0 }))} className="px-3 py-1 bg-red-900/40 hover:bg-red-800 text-white font-bold rounded uppercase tracking-widest text-[8px] border border-red-500/50">Skip Prep</button>
+                    <button onClick={() => setGameState(prev => ({ ...prev, autoSkipPrep: true }))} className="px-3 py-1 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-400 font-bold rounded uppercase tracking-widest text-[8px] border border-zinc-700">Remember</button>
+                  </div>
                 </div>
               )}
               {!gameState.isWaveActive && !gameState.isPrepPhase && (
@@ -867,6 +920,10 @@ const App: React.FC = () => {
                     <div className="flex justify-between"><span>Fire Rate:</span><span className="text-green-500">{selectedPlacedTower.level >= 5 ? Math.max(5, selectedPlacedChar.fireRate - 5) : selectedPlacedChar.fireRate}</span></div>
                   </div>
                   <button onClick={() => upgradeTower(selectedPlacedTower.id)} disabled={selectedPlacedTower.level >= MAX_LEVEL || gameState.fazCoins < Math.floor(selectedPlacedChar.cost * Math.pow(1.5, selectedPlacedTower.level))} className="w-full py-4 bg-red-700 hover:bg-red-600 disabled:bg-zinc-800 disabled:text-zinc-700 text-white font-bold rounded-lg transition-all shadow-lg uppercase tracking-widest text-xs">{selectedPlacedTower.level >= MAX_LEVEL ? 'MAX LEVEL' : `UPGRADE: ${Math.floor(selectedPlacedChar.cost * Math.pow(1.5, selectedPlacedTower.level)).toLocaleString()} FC`}</button>
+
+                  <button onClick={() => sellPlacedTower(selectedPlacedTower.id)} className="w-full py-2 bg-zinc-900 border border-zinc-800 hover:border-red-600 text-zinc-500 hover:text-red-500 font-bold rounded-lg transition-all uppercase tracking-widest text-[10px]">
+                    SELL FOR {Math.floor((selectedPlacedChar.cost + Array.from({ length: selectedPlacedTower.level - 1 }).reduce((acc: number, _, i) => acc + Math.floor(selectedPlacedChar.cost * Math.pow(1.5, i + 1)), 0)) * 0.6).toLocaleString()} FC
+                  </button>
                 </div>
               </div>
             </div>
