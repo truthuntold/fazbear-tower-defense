@@ -394,103 +394,122 @@ const App: React.FC = () => {
   };
 
   const gameLoop = useCallback((time: number) => {
-    const deltaTime = time - lastTickRef.current;
-    if (deltaTime >= (33 / gameState.gameSpeed)) {
-      lastTickRef.current = time;
-      tickCountRef.current++;
+    if (!lastTickRef.current) lastTickRef.current = time;
+    const elapsed = time - lastTickRef.current;
+
+    // Target 30 logic ticks per second at 1x speed
+    const baseInterval = 33.3;
+    const effectiveInterval = baseInterval / gameState.gameSpeed;
+
+    if (elapsed >= effectiveInterval) {
+      const numTicks = Math.floor(elapsed / effectiveInterval);
+      lastTickRef.current = time - (elapsed % effectiveInterval);
 
       setGameState(prev => {
         if ((!prev.isWaveActive && prev.projectiles.length === 0) || prev.isGameOver) return prev;
 
-        const updatedEnemies = [...prev.enemies];
-        const updatedTowers = [...prev.placedTowers];
-        const updatedProjectiles = [...prev.projectiles].filter(p => tickCountRef.current - p.startTime < p.duration);
-        let newHealth = prev.health;
-        let newCoins = prev.fazCoins;
+        let workingState = { ...prev };
 
-        const diffConfig = DIFFICULTY_CONFIG[prev.difficulty || Difficulty.MEDIUM];
-        const moneyEffect = prev.activeEffects.find(e => e.type === PotionType.MONEY);
-        const moneyMult = moneyEffect ? moneyEffect.multiplier : 1;
+        // Process multiple ticks if needed (cap at 5 to prevent performance issues)
+        const ticksToRun = Math.min(numTicks, 5);
 
-        for (let i = updatedEnemies.length - 1; i >= 0; i--) {
-          const enemy = updatedEnemies[i];
-          if (enemy.slowTimer > 0) {
-            enemy.slowTimer--;
-            enemy.speed = enemy.originalSpeed * 0.5;
-          } else {
-            enemy.speed = enemy.originalSpeed;
-          }
+        for (let t = 0; t < ticksToRun; t++) {
+          tickCountRef.current++;
 
-          enemy.lerpFactor += enemy.speed;
-          if (enemy.lerpFactor >= 1) {
-            enemy.lerpFactor = 0;
-            enemy.positionIndex++;
-            if (enemy.positionIndex >= PATH.length - 1) {
-              newHealth -= (enemy.type === 'Boss' ? 5 : 1);
-              updatedEnemies.splice(i, 1);
+          const updatedEnemies = [...workingState.enemies];
+          const updatedTowers = [...workingState.placedTowers];
+          const updatedProjectiles = [...workingState.projectiles].filter(p => tickCountRef.current - p.startTime < p.duration);
+          let newHealth = workingState.health;
+          let newCoins = workingState.fazCoins;
+
+          const diffConfig = DIFFICULTY_CONFIG[workingState.difficulty || Difficulty.MEDIUM];
+          const moneyEffect = workingState.activeEffects.find(e => e.type === PotionType.MONEY);
+          const moneyMult = moneyEffect ? moneyEffect.multiplier : 1;
+
+          for (let i = updatedEnemies.length - 1; i >= 0; i--) {
+            const enemy = updatedEnemies[i];
+            if (enemy.slowTimer > 0) {
+              enemy.slowTimer--;
+              enemy.speed = enemy.originalSpeed * 0.5;
+            } else {
+              enemy.speed = enemy.originalSpeed;
+            }
+
+            enemy.lerpFactor += enemy.speed;
+            if (enemy.lerpFactor >= 1) {
+              enemy.lerpFactor = 0;
+              enemy.positionIndex++;
+              if (enemy.positionIndex >= PATH.length - 1) {
+                newHealth -= (enemy.type === 'Boss' ? 5 : 1);
+                updatedEnemies.splice(i, 1);
+              }
             }
           }
-        }
 
-        updatedTowers.forEach(tower => {
-          const char = CHARACTERS[tower.characterId];
-          if (char) {
-            const scalingFactor = RARITY_UPGRADE_SCALING[char.rarity];
-            const currentDamage = Math.floor(char.damage * Math.pow(scalingFactor, tower.level - 1));
-            const currentFireRate = tower.level >= 5 ? Math.max(5, char.fireRate - 5) : char.fireRate;
+          updatedTowers.forEach(tower => {
+            const char = CHARACTERS[tower.characterId];
+            if (char) {
+              const scalingFactor = RARITY_UPGRADE_SCALING[char.rarity];
+              const currentDamage = Math.floor(char.damage * Math.pow(scalingFactor, tower.level - 1));
+              const currentFireRate = tower.level >= 5 ? Math.max(5, char.fireRate - 5) : char.fireRate;
 
-            if (tickCountRef.current - tower.lastFired < currentFireRate) return;
+              if (tickCountRef.current - tower.lastFired < currentFireRate) return;
 
-            let target: Enemy | null = null;
-            let minDist = char.range;
+              let target: Enemy | null = null;
+              let minDist = char.range;
 
-            updatedEnemies.forEach(e => {
-              if (e.lerpFactor < 0) return;
-              const pos = {
-                x: PATH[e.positionIndex].x + (PATH[e.positionIndex + 1]?.x - PATH[e.positionIndex].x || 0) * e.lerpFactor,
-                y: PATH[e.positionIndex].y + (PATH[e.positionIndex + 1]?.y - PATH[e.positionIndex].y || 0) * e.lerpFactor
-              };
-              const dist = Math.sqrt(Math.pow(pos.x - tower.pos.x, 2) + Math.pow(pos.y - tower.pos.y, 2));
-              if (dist <= minDist) { target = e; minDist = dist; }
-            });
-
-            if (target) {
-              target.hp -= currentDamage;
-              tower.lastFired = tickCountRef.current;
-              if (char.ability === 'slow') target.slowTimer = 60;
-              updatedProjectiles.push({
-                id: `proj-${Date.now()}-${Math.random()}`,
-                start: { ...tower.pos },
-                end: {
-                  x: PATH[target.positionIndex].x + (PATH[target.positionIndex + 1]?.x - PATH[target.positionIndex].x || 0) * target.lerpFactor,
-                  y: PATH[target.positionIndex].y + (PATH[target.positionIndex + 1]?.y - PATH[target.positionIndex].y || 0) * target.lerpFactor
-                },
-                startTime: tickCountRef.current,
-                duration: 15,
-                color: char.color
+              updatedEnemies.forEach(e => {
+                if (e.lerpFactor < 0) return;
+                const pos = {
+                  x: PATH[e.positionIndex].x + (PATH[e.positionIndex + 1]?.x - PATH[e.positionIndex].x || 0) * e.lerpFactor,
+                  y: PATH[e.positionIndex].y + (PATH[e.positionIndex + 1]?.y - PATH[e.positionIndex].y || 0) * e.lerpFactor
+                };
+                const dist = Math.sqrt(Math.pow(pos.x - tower.pos.x, 2) + Math.pow(pos.y - tower.pos.y, 2));
+                if (dist <= minDist) { target = e; minDist = dist; }
               });
+
+              if (target) {
+                target.hp -= currentDamage;
+                tower.lastFired = tickCountRef.current;
+                if (char.ability === 'slow') target.slowTimer = 60;
+                updatedProjectiles.push({
+                  id: `proj-${Date.now()}-${Math.random()}`,
+                  start: { ...tower.pos },
+                  end: {
+                    x: PATH[target.positionIndex].x + (PATH[target.positionIndex + 1]?.x - PATH[target.positionIndex].x || 0) * target.lerpFactor,
+                    y: PATH[target.positionIndex].y + (PATH[target.positionIndex + 1]?.y - PATH[target.positionIndex].y || 0) * target.lerpFactor
+                  },
+                  startTime: tickCountRef.current,
+                  duration: 15,
+                  color: char.color
+                });
+              }
+            }
+          });
+
+          for (let i = updatedEnemies.length - 1; i >= 0; i--) {
+            if (updatedEnemies[i].hp <= 0) {
+              const killedEnemy = updatedEnemies[i];
+              updatedEnemies.splice(i, 1);
+              const reward = killedEnemy.type === 'Boss' ? 100 : FAZ_COIN_DROP;
+              newCoins += Math.floor(reward * diffConfig.coinMult * moneyMult);
             }
           }
-        });
 
-        for (let i = updatedEnemies.length - 1; i >= 0; i--) {
-          if (updatedEnemies[i].hp <= 0) {
-            const killedEnemy = updatedEnemies[i];
-            updatedEnemies.splice(i, 1);
-            const reward = killedEnemy.type === 'Boss' ? 100 : FAZ_COIN_DROP;
-            newCoins += Math.floor(reward * diffConfig.coinMult * moneyMult);
-          }
+          workingState = {
+            ...workingState,
+            health: Math.max(0, newHealth),
+            fazCoins: newCoins,
+            enemies: updatedEnemies,
+            projectiles: updatedProjectiles,
+            isWaveActive: updatedEnemies.length > 0,
+            isGameOver: newHealth <= 0
+          };
+
+          if (workingState.isGameOver) break;
         }
 
-        return {
-          ...prev,
-          health: Math.max(0, newHealth),
-          fazCoins: newCoins,
-          enemies: updatedEnemies,
-          projectiles: updatedProjectiles,
-          isWaveActive: updatedEnemies.length > 0,
-          isGameOver: newHealth <= 0
-        };
+        return workingState;
       });
     }
     gameLoopRef.current = requestAnimationFrame(gameLoop);
